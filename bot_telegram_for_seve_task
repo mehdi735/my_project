@@ -1,0 +1,47 @@
+import telebot
+
+TOKEN = 'YOUR_BOT_TOKEN' #باید توکن خودت را وارد کنی 
+bot = telebot.TeleBot(TOKEN)
+
+tasks = {}
+
+@bot.message_handler(commands=['start', 'help'])
+def send_welcome(message):
+    bot.reply_to(message, "سلام! من یک ربات تلگرامی هستم. می‌توانم به شما کمک کنم وظایف خود را مدیریت کنید. از دستورات /add، /list و /remove استفاده کنید.")
+
+@bot.message_handler(commands=['add'])
+def add_task(message):
+    user_id = message.from_user.id
+    task = message.text[5:].strip()
+
+    if user_id not in tasks:
+        tasks[user_id] = []
+    
+    tasks[user_id].append(task)
+    bot.reply_to(message, f'وظیفه "{task}" به لیست شما اضافه شد.')
+    # نمایش مقدار متغیرها برای شما
+    print(f'task: {task}')
+    print(f'tasks[{user_id}]: {tasks[user_id]}')
+
+@bot.message_handler(commands=['list'])
+def list_tasks(message):
+    user_id = message.from_user.id
+
+    if user_id not in tasks or not tasks[user_id]:
+        bot.reply_to(message, "شما هیچ وظیفه‌ای ندارید.")
+    else:
+        task_list = '\n'.join(f'- {task}' for task in tasks[user_id])
+        bot.reply_to(message, f'لیست وظایف شما:\n{task_list}')
+
+@bot.message_handler(commands=['remove'])
+def remove_task(message):
+    user_id = message.from_user.id
+    task = message.text[8:].strip()
+
+    if user_id not in tasks or task not in tasks[user_id]:
+        bot.reply_to(message, f'وظیفه "{task}" در لیست شما یافت نشد.')
+    else:
+        tasks[user_id].remove(task)
+        bot.reply_to(message, f'وظیفه "{task}" از لیست شما حذف شد.')
+
+bot.polling()
